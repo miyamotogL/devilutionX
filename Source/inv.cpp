@@ -1938,8 +1938,8 @@ void ConsumeStaffCharge(Player &player)
 
 	if (!CanUseStaff(staff, player.executedSpell.spellId))
 		return;
-
-	staff._iCharges--;
+	//do not consume charges
+	//staff._iCharges--;
 	CalcPlrStaff(player);
 }
 

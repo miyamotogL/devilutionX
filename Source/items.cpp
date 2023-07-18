@@ -1175,9 +1175,10 @@ std::string GenerateMagicItemName(const string_view &baseNamel, const PLStruct *
 
 void GetItemPowerPrefixAndSuffix(int minlvl, int maxlvl, AffixItemType flgs, bool onlygood, bool hellfireItem, tl::function_ref<void(const PLStruct &prefix)> prefixFound, tl::function_ref<void(const PLStruct &suffix)> suffixFound)
 {
+	//override to make only good items possible
+	bool _onlyGood = true;
 	int preidx = -1;
 	int sufidx = -1;
-
 	int l[256];
 	goodorevil goe;
 
@@ -1191,8 +1192,8 @@ void GetItemPowerPrefixAndSuffix(int minlvl, int maxlvl, AffixItemType flgs, boo
 			allocateSuffix = true;
 	}
 	goe = GOE_ANY;
-	if (!onlygood && !FlipCoin(3))
-		onlygood = true;
+	if (!_onlyGood && !FlipCoin(3))
+		_onlyGood = true;
 	if (allocatePrefix) {
 		int nt = 0;
 		for (int j = 0; ItemPrefixes[j].power.type != IPL_INVALID; j++) {
@@ -1200,7 +1201,7 @@ void GetItemPowerPrefixAndSuffix(int minlvl, int maxlvl, AffixItemType flgs, boo
 				continue;
 			if (ItemPrefixes[j].PLMinLvl < minlvl || ItemPrefixes[j].PLMinLvl > maxlvl)
 				continue;
-			if (onlygood && !ItemPrefixes[j].PLOk)
+			if (_onlyGood && !ItemPrefixes[j].PLOk)
 				continue;
 			if (HasAnyOf(flgs, AffixItemType::Staff) && ItemPrefixes[j].power.type == IPL_CHARGES)
 				continue;
@@ -1223,7 +1224,7 @@ void GetItemPowerPrefixAndSuffix(int minlvl, int maxlvl, AffixItemType flgs, boo
 			if (IsSuffixValidForItemType(j, flgs, hellfireItem)
 			    && ItemSuffixes[j].PLMinLvl >= minlvl && ItemSuffixes[j].PLMinLvl <= maxlvl
 			    && !((goe == GOE_GOOD && ItemSuffixes[j].PLGOE == GOE_EVIL) || (goe == GOE_EVIL && ItemSuffixes[j].PLGOE == GOE_GOOD))
-			    && (!onlygood || ItemSuffixes[j].PLOk)) {
+			    && (!_onlyGood || ItemSuffixes[j].PLOk)) {
 				l[nl] = j;
 				nl++;
 			}
@@ -3068,12 +3069,18 @@ void CreatePlrItems(Player &player)
 	}
 
 	Item &goldItem = player.InvList[player._pNumInv];
-	MakeGoldStack(goldItem, 100);
+	MakeGoldStack(goldItem, 5000);
+
+	player._pNumInv++;
+	player.InvGrid[29] = player._pNumInv;
+
+	Item &goldItem2 = player.InvList[player._pNumInv];
+	MakeGoldStack(goldItem2, 5000);
 
 	player._pNumInv++;
 	player.InvGrid[30] = player._pNumInv;
 
-	player._pGold = goldItem._ivalue;
+	player._pGold = goldItem._ivalue + goldItem2._ivalue;
 
 	CalcPlrItemVals(player, false);
 }
